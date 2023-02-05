@@ -1,0 +1,422 @@
+---
+title: "Case Study: Cyclistic"
+author: Burçak Aydın
+output: html_document
+date: "2023-01-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Case Study: How Does a Bike-Share Navigate Speedy Success?
+## Scenario
+I am a junior data analyst working in the marketing analyst team at Cyclistic, a bike-share company in Chicago. The director of marketing believes the company’s future success depends on maximizing the number of annual memberships. Therefore, my team wants to understand how casual riders and annual members use Cyclistic bikes differently. From these insights, my team will design a new marketing strategy to convert casual riders into annual members. But first, Cyclistic executives must approve my recommendations, so they must be backed up with compelling data insights and professional data visualizations.
+
+
+## Business task
+
+## 1. Ask Question  
+These three following questions will guide the future marketing program and needed to be answered:
+
+How do annual members and casual riders use Cyclistic bikes differently?
+Why would casual riders buy Cyclistic annual memberships?
+How can Cyclistic use digital media to influence casual riders to become members?
+
+## 2. Preparation 
+
+### 2.1 Activating Libraries
+```{r}
+## Install Necessary Packages
+library("tidyverse")
+library("geosphere")
+```
+
+### 2.2 Importing and Merging Datasets
+
+```{r}
+Cyclistic <- list.files(path = "/Users/burcakaydin/Desktop/Cyclistic",  # Identify all CSV files
+                       pattern = "*.csv", full.names = TRUE) %>% 
+  lapply(read_csv) %>%                              # Store all files in list
+  bind_rows # Combine data sets into one data set 
+```
+
+### 2.3 Getting familiar with the Features of Dataset
+```{r}
+## Check data_all if all .csv files are concatenated
+head(Cyclistic,5)
+```
+## 3. Process
+
+### 3.1 Data Cleaning
+
+```{r}
+## We drop all NA 
+Cyclistic_clean <- na.omit(Cyclistic)
+Cyclistic <- Cyclistic_clean
+
+```
+
+```{r}
+# Renaming columns
+names(Cyclistic) [2] <- 'bike'
+names(Cyclistic) [13] <- 'user'
+```
+
+
+```{r}
+## separate the dates into month, day, year and day of the week
+## Cyclistic$month <- format(as.Date(Cyclistic$date), "%m")
+Cyclistic$date <- as.Date(Cyclistic$started_at) 
+Cyclistic$day <- format(as.Date( Cyclistic$date), "%d")
+Cyclistic$year <- format(as.Date(Cyclistic$date), "%Y")
+Cyclistic$day_of_week <- format(as.Date(Cyclistic$date), "%A")
+Cyclistic$month_name <- format(as.Date(Cyclistic$date), "%b")
+```
+
+
+```{r}
+## Check if data format changes
+head(Cyclistic,20)
+```
+
+```{r}
+#New columns with the duration of the ride, distance traveled, and speed:
+
+#Convert the ride lengths into minutes:
+
+Cyclistic<- Cyclistic %>% 
+  mutate(ride_length = difftime(ended_at, started_at, units = "mins"))
+head(Cyclistic,3)
+```
+
+
+```{r}
+#Calculate the ride distance traveled in km
+Cyclistic$ride_distance <- distGeo(matrix(c(Cyclistic$start_lng, Cyclistic$start_lat), ncol = 2), matrix(c(Cyclistic$end_lng,Cyclistic$end_lat), ncol = 2))
+Cyclistic$ride_distance <- Cyclistic$ride_distance/1000
+head(Cyclistic,10)
+```
+
+
+```{r}
+
+# Ordering day_of_week column
+Cyclistic$day_of_week <- ordered(Cyclistic$day_of_week, levels = c("Monday", "Tuesday", "Wednesday", 
+                                                           "Thursday", "Friday", "Saturday", 
+                                                           "Sunday"))
+# Ordering month column
+Cyclistic$month_name <- ordered(Cyclistic$month_name, 
+                           levels = c("Jan", "Feb", "Mar", 
+                                      "Apr", "May", "Jun","Jul", "Aug", 
+                                      "Sep", "Oct", "Nov", "Dec"))
+
+```
+
+```{r}
+#At last the speed in Km/h
+Cyclistic$ride_speed = c(Cyclistic$ride_distance)/as.numeric(c(Cyclistic$ride_length), units="hours")
+head(Cyclistic,10)
+```
+
+```{r}
+## Stats
+summary(Cyclistic)
+```
+
+
+```{r}
+# Show number of casuals and members in a table per week day
+table(Cyclistic$user,Cyclistic$day_of_week)
+```
+
+```{r}
+# Show number of casuals and members in a table per month
+table(Cyclistic$user,Cyclistic$month_name)
+``` 
+
+
+## 4. Analyze Data to Answer Questions
+
+```{r}
+user_percentage <- Cyclistic %>%
+    group_by(user) %>%
+    summarize(total = n()) %>%
+    mutate(overall_total = sum(total)) %>%
+    group_by(user) %>%
+    summarize((percent_total = total/overall_total))
+
+user_percentage
+``` 
+
+
+```{r}
+bike_usage_percentage <- Cyclistic %>%
+    group_by(bike) %>%
+    summarize(total = n()) %>%
+    mutate(overall_total = sum(total)) %>%
+    group_by(bike) %>%
+    summarize((percent_total = total/overall_total)*100) 
+
+bike_usage_percentage
+```
+
+```{r}
+casual_biketype_usage <- Cyclistic %>%
+    filter(user == "casual") %>%
+    group_by(bike) %>%
+    summarize(total = n()) %>%
+    mutate(overall_total = sum(total)) %>%
+    group_by(bike) %>%
+    summarize((percent_casual = total/overall_total)*100)
+
+casual_biketype_usage
+```
+
+
+```{r}
+member_biketype_usage <- Cyclistic %>%
+    filter(user == "member") %>%
+    group_by(bike) %>%
+    summarize(total = n()) %>%
+    mutate(overall_total = sum(total)) %>%
+    group_by(bike) %>%
+    summarize((percent_casual = total/overall_total)*100)
+
+member_biketype_usage
+```
+
+```{r}
+average_riding_time <- Cyclistic %>%
+    group_by(user) %>%
+    summarize(avg_time = mean(ride_length), .groups = "drop")
+
+
+average_riding_time$avg_time <- round(average_riding_time$avg_time , digits = 1)
+
+average_riding_time
+```
+
+```{r}
+average_time_biketype <- Cyclistic %>%
+    group_by(bike, user) %>%
+    summarize(avg_time = mean(ride_length), .groups = "drop")
+
+average_time_biketype$avg_time <- round(average_time_biketype$avg_time , digits = 0)
+
+average_time_biketype
+```
+
+
+```{r}
+average_distance <- Cyclistic %>%
+    group_by(user) %>%
+    summarize(avg_dist = mean(ride_distance), .groups = "drop")
+
+average_distance$avg_dist <- round(average_distance$avg_dist , digits = 2)
+
+average_distance
+
+```
+
+```{r}
+distance_biketypes <- Cyclistic %>%
+    group_by(bike, user) %>%
+    summarize(avg_dist = mean(ride_distance), .groups = "drop")
+
+distance_biketypes$avg_dist <- round(distance_biketypes$avg_dist , digits = 2)
+
+distance_biketypes
+```
+
+```{r}
+# Average ride time by user
+average_time <- Cyclistic %>% 
+    group_by(user) %>%
+    summarise(avgtime = mean(ride_length))
+
+average_time $avgtime <- round(average_time $avgtime, digits = 0)
+
+average_time 
+```
+
+```{r}
+
+Cyclistic <- Cyclistic%>%
+    mutate(hour = strftime(Cyclistic$ended_at, "%H"))
+Cyclistic
+
+```
+
+```{r}
+# Rides by user in hour
+hours <- Cyclistic%>%
+    group_by(user, hour) %>% 
+    summarise(number_of_rides = n(),.groups = 'drop') %>% 
+      arrange(hour)
+
+hours
+```
+
+```{r}
+# Ride count by user for weekday
+day_of_week_ <- Cyclistic%>%
+      group_by(user, day_of_week) %>% 
+      summarise(number_of_rides = n(),.groups = "drop")
+
+day_of_week_
+
+```
+
+## 5. Share Data Through Visuals
+
+
+```{r}
+##
+
+average_riding_time  %>%
+    ggplot(aes(user, avg_time, fill = user)) +
+    geom_col(position = "dodge") +
+    labs(
+        title = "Average time by user type in 2022",
+        x = "User type",
+        y = "Average time(min)",
+        fill = "User type"
+    )
+ 
+```
+### Casual bikers travel longer than members.
+
+
+```{r}
+# visualizing daily average of trip duration by user type
+
+average_time_biketype %>%
+    ggplot(aes(bike, avg_time, fill = user)) +
+    geom_col(position = "dodge") +
+    labs(
+        title = "Daily average of trip duration in 2022",
+        x = "Day of week",
+        y = "Average duration (min)",
+        fill = "User type"
+    )
+
+```
+### Docked bikes are used for the longest journey by casual bikers.
+
+
+```{r}
+##
+
+average_distance  %>%
+    ggplot(aes(user, avg_dist, fill = user)) +
+    geom_col(position = "dodge") +
+    labs(
+        title = "Average time by user type in 2022",
+        x = "User type",
+        y = "Average distance(km)",
+        fill = "User type"
+    )
+ 
+```
+### Casual and member bikers travel for similar time.
+
+
+
+```{r}
+# 
+
+distance_biketypes %>%
+    ggplot(aes(bike, avg_dist, fill = user)) +
+    geom_col(position = "dodge") +
+    labs(
+        title = "Daily average distance by bike type in 2022",
+        x = "Day of week",
+        y = "Average distance (km)",
+        fill = "User type"
+    )
+
+```
+### Docked bikes are used by casuals only. 
+### Electric bike is most popular bike type between all riders.
+### Classic bikers, docked bikers, and electric bikers travel almost the same distance in terms of days of week.
+
+
+```{r}
+##
+
+average_time  %>%
+    ggplot(aes(user, avgtime, fill = user)) +
+    geom_col(position = "dodge") +
+    labs(
+        title = "Average time by user type in 2022",
+        x = "User type",
+        y = "Average time(min)",
+        fill = "User type"
+    )
+```
+### Casual biker travel twice longer than members. 
+
+
+
+```{r}
+# 
+library("scales")
+hours %>%
+    ggplot(aes(hour, number_of_rides, fill = user)) +
+    geom_col(position = "dodge") +
+    labs(
+        title = "Hours of rides by user in 2022",
+        x = "Hours of rides",
+        y = "Number of riders",
+        fill = "User type"
+    )+
+    scale_y_continuous(labels = comma_format(big.mark = ".",
+                                           decimal.mark = ","))
+
+```
+### Least popular bike usage time is between 02.00-08.00 which is home sleeping/resting time. 
+### Most popular bike usage time is 19.00-22.00 
+
+
+
+```{r}
+# Find number of rides for each user
+
+day_of_week_ %>%
+    ggplot(aes(day_of_week, number_of_rides, fill = user)) +
+    geom_col(position = "dodge") +
+    labs(
+        title = "Number of rides in week in 2022",
+        x = "Day of week",
+        y = "Number of rides by week",
+        fill = "User type"
+    )+
+    scale_y_continuous(labels = comma_format(big.mark = ".",
+                                           decimal.mark = ","))
+
+```
+
+### During weekday, casual riders are more than members. Members use bikes weekend more than weekdays. 
+### So, we may create a solution to encourage casuals to use bike weekends.  
+
+
+
+## 6. Conlusion
+### Remember the questions we asked in the beginning.
+1. How do annual members and casual riders use Cyclistic bikes differently?
+2. Why would casual riders buy Cyclistic annual memberships?
+3. How can Cyclistic use digital media to influence casual riders to become members?
+
+### #1 Annual members and casual members use bikes differently.
+During weekday, casual riders are more than members. Members use bikes weekend more than weekdays. So, we may create a solution to encourage casuals to use bike weekends. Least popular bike usage time is between 02.00-08.00 which is home sleeping/resting time. Most popular bike usage time is 19.00-22.00. Casual biker travel twice longer than members. Docked bikes are used by casuals only. 
+
+Electric bike is most popular bike type between all riders. Classic bikers, docked bikers, and electric bikers travel almost the same distance in terms of days of week. Casual and member bikers travel for similar time. Docked bikes are used for the longest journey by casual bikers. Casual bikers travel longer than members.
+
+### #2 Annual members ride bikes almost everyday of the week. 
+
+However, casuals rides mostly weekdays. So, casuals would have benefits of having bike while using bikes weekeneds. Because, casuals ride longer distance than the annual members.
+
+
+### #3 There can be advertisent that show the advantages using bike weekend and in longer journeys. 
+
+Thus, casual users could be encouraged buying annual plan. 
