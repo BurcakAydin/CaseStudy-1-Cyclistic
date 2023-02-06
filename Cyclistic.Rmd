@@ -1,37 +1,48 @@
 ---
-title: "Case Study: Cyclistic"
+title: "Case Study 1: Cyclistic"
 author: Burçak Aydın
-output: html_document
-date: "2023-01-17"
+date: "2023-02-06"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    toc_depth: 3 
+    code_folding: hide
+    toc_float: 
+      collapsed: false
+      smooth_scroll: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-# Case Study: How Does a Bike-Share Navigate Speedy Success?
-## Scenario
+Case Study: How Does a Bike-Share Navigate Speedy Success?
+
+# Scenario
 I am a junior data analyst working in the marketing analyst team at Cyclistic, a bike-share company in Chicago. The director of marketing believes the company’s future success depends on maximizing the number of annual memberships. Therefore, my team wants to understand how casual riders and annual members use Cyclistic bikes differently. From these insights, my team will design a new marketing strategy to convert casual riders into annual members. But first, Cyclistic executives must approve my recommendations, so they must be backed up with compelling data insights and professional data visualizations.
 
 
-## Business task
+# Business task
+Design marketing strategies aimed at converting casual riders into annual members. In order to do that, however, the marketing analyst team needs to better understand how annual members and casual riders differ, why casual riders would buy a membership, and how digital media could affect their marketing tactics.
 
-## 1. Ask Question  
+## Ask Question  
 These three following questions will guide the future marketing program and needed to be answered:
 
 How do annual members and casual riders use Cyclistic bikes differently?
 Why would casual riders buy Cyclistic annual memberships?
 How can Cyclistic use digital media to influence casual riders to become members?
 
-## 2. Preparation 
-
-### 2.1 Activating Libraries
+# Preparation 
+## Dataset Source
+You will use Cyclistic’s historical trip data to analyze and identify trends. Download the previous 12 months of Cyclistic trip data from "https://divvy-tripdata.s3.amazonaws.com/index.html". (Note: The datasets have a different name because Cyclistic is a fictional company. For the purposes of this case study, the datasets are appropriate and will enable you to answer the business questions. The data has been made available by Motivate International Inc. under this license from "https://ride.divvybikes.com/data-license-agreement".)
+## Activating Libraries
 ```{r}
 ## Install Necessary Packages
 library("tidyverse")
 library("geosphere")
 ```
 
-### 2.2 Importing and Merging Datasets
+## Importing and Merging Datasets
 
 ```{r}
 Cyclistic <- list.files(path = "/Users/burcakaydin/Desktop/Cyclistic",  # Identify all CSV files
@@ -40,14 +51,14 @@ Cyclistic <- list.files(path = "/Users/burcakaydin/Desktop/Cyclistic",  # Identi
   bind_rows # Combine data sets into one data set 
 ```
 
-### 2.3 Getting familiar with the Features of Dataset
+## Getting familiar with the Features of Dataset
 ```{r}
 ## Check data_all if all .csv files are concatenated
 head(Cyclistic,5)
 ```
-## 3. Process
+# Process
 
-### 3.1 Data Cleaning
+## Data Cleaning
 
 ```{r}
 ## We drop all NA 
@@ -135,7 +146,7 @@ table(Cyclistic$user,Cyclistic$month_name)
 ``` 
 
 
-## 4. Analyze Data to Answer Questions
+# Analyze Data to Answer Questions
 
 ```{r}
 user_percentage <- Cyclistic %>%
@@ -267,7 +278,7 @@ day_of_week_
 
 ```
 
-## 5. Share Data Through Visuals
+# Share Data Through Visuals
 
 
 ```{r}
@@ -284,7 +295,7 @@ average_riding_time  %>%
     )
  
 ```
-### Casual bikers travel longer than members.
+Casual bikers travel longer than members.
 
 
 ```{r}
@@ -301,7 +312,7 @@ average_time_biketype %>%
     )
 
 ```
-### Docked bikes are used for the longest journey by casual bikers.
+Docked bikes are used for the longest journey by casual bikers.
 
 
 ```{r}
@@ -318,7 +329,7 @@ average_distance  %>%
     )
  
 ```
-### Casual and member bikers travel for similar time.
+Casual and member bikers travel for similar time.
 
 
 
@@ -336,9 +347,9 @@ distance_biketypes %>%
     )
 
 ```
-### Docked bikes are used by casuals only. 
-### Electric bike is most popular bike type between all riders.
-### Classic bikers, docked bikers, and electric bikers travel almost the same distance in terms of days of week.
+Docked bikes are used by casuals only. 
+Electric bike is most popular bike type between all riders.
+Classic bikers, docked bikers, and electric bikers travel almost the same distance in terms of days of week.
 
 
 ```{r}
@@ -354,7 +365,7 @@ average_time  %>%
         fill = "User type"
     )
 ```
-### Casual biker travel twice longer than members. 
+Casual biker travel twice longer than members. 
 
 
 
@@ -374,8 +385,8 @@ hours %>%
                                            decimal.mark = ","))
 
 ```
-### Least popular bike usage time is between 02.00-08.00 which is home sleeping/resting time. 
-### Most popular bike usage time is 19.00-22.00 
+Least popular bike usage time is between 02.00-08.00 which is home sleeping/resting time. 
+Most popular bike usage time is 19.00-22.00 
 
 
 
@@ -396,27 +407,27 @@ day_of_week_ %>%
 
 ```
 
-### During weekday, casual riders are more than members. Members use bikes weekend more than weekdays. 
-### So, we may create a solution to encourage casuals to use bike weekends.  
+During weekday, casual riders are more than members. Members use bikes weekend more than weekdays. 
+So, we may create a solution to encourage casuals to use bike weekends.  
 
 
 
-## 6. Conlusion
-### Remember the questions we asked in the beginning.
+# Conlusion
+Remember the questions we asked in the beginning.
 1. How do annual members and casual riders use Cyclistic bikes differently?
 2. Why would casual riders buy Cyclistic annual memberships?
 3. How can Cyclistic use digital media to influence casual riders to become members?
 
-### #1 Annual members and casual members use bikes differently.
+#1 Annual members and casual members use bikes differently.
 During weekday, casual riders are more than members. Members use bikes weekend more than weekdays. So, we may create a solution to encourage casuals to use bike weekends. Least popular bike usage time is between 02.00-08.00 which is home sleeping/resting time. Most popular bike usage time is 19.00-22.00. Casual biker travel twice longer than members. Docked bikes are used by casuals only. 
 
 Electric bike is most popular bike type between all riders. Classic bikers, docked bikers, and electric bikers travel almost the same distance in terms of days of week. Casual and member bikers travel for similar time. Docked bikes are used for the longest journey by casual bikers. Casual bikers travel longer than members.
 
-### #2 Annual members ride bikes almost everyday of the week. 
+#2 Annual members ride bikes almost everyday of the week. 
 
 However, casuals rides mostly weekdays. So, casuals would have benefits of having bike while using bikes weekeneds. Because, casuals ride longer distance than the annual members.
 
 
-### #3 There can be advertisent that show the advantages using bike weekend and in longer journeys. 
+#3 There can be advertisent that show the advantages using bike weekend and in longer journeys. 
 
 Thus, casual users could be encouraged buying annual plan. 
